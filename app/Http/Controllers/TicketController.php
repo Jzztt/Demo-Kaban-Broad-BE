@@ -5,14 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\Lane;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 
 class TicketController extends Controller
 {
-    //
     public function index()
     {
-        return Ticket::all();
+        $lanes = Ticket::all();
+        return response()->json(
+            [
+                'success' => true,
+                'data' => $lanes,
+                'message' => 'Ticket retrieved successfully'
+            ],
+            200
+        );
     }
 
     public function show($id)
@@ -22,24 +30,43 @@ class TicketController extends Controller
 
     public function store(Request $request)
     {
-        Ticket::where('lane_id', 1)->increment('position');
-        $ticket = new Ticket();
-        $ticket->lane_id = 1;
-        $ticket->title = $request->input('title');
-        $ticket->author = $request->input('author');
-        $ticket->priority = $request->input('priority');
-        $ticket->description = $request->input('description');
-        $ticket->link_issue = $request->input('link_issue');
-        $ticket->position = 0;
-        $ticket->save();
+        try {
+            $validatedData = $request->validate([
+                'title' => 'required|string|max:255',
+                'priority' => 'required|string|max:255',
+                'description' => 'required|string',
+                'link_issue' => 'required|string|url',
+            ]);
+            // fix lane_id
+            $laneId = 1;
+            $position_ticket = 0;
+            $ticket = new Ticket();
+            $ticket->lane_id = $laneId;
+            $ticket->title = $validatedData['title'];
+            // handle get author
+            $ticket->author = $request->input('author') ? $request->input('author') : 'HienLV';
+            $ticket->priority = $validatedData['priority'];
+            $ticket->description = $validatedData['description'];
+            $ticket->link_issue = $validatedData['link_issue'];
+            $ticket->position =  $position_ticket;
+            Ticket::where('lane_id', 1)->increment('position');
+            $ticket->save();
 
-        $lanes = Lane::with(['tickets' => function ($query) {
-            $query->orderBy('position', 'asc');
-        }])->get();
+            $lanes = Lane::with(['tickets' => function ($query) {
+                $query->orderBy('position', 'asc');
+            }])->get();
 
-        return response()->json(['success' => true, 'data' => $lanes]);
+            return response()->json(['success' => true, 'data' => $lanes, 'message' => 'Ticket created successfully'], 200);
+            //code...
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
-    public function delete(Request $request, $laneId, $ticketId)
+    public function delete(Request $request, int $laneId, int $ticketId)
     {
         try {
             $ticket = Ticket::where('id', $ticketId)
@@ -48,15 +75,10 @@ class TicketController extends Controller
 
             $ticket->delete();
             $lanes = Lane::with('tickets')->get();
-            $responseData = [
-                'message' => 'Ticket deleted successfully',
-                'data' => $lanes,
-                'success' => true,
-            ];
 
-            return response()->json($responseData, 200);
-        } catch (\Exception $exception) {
-            return response()->json(['message' => 'Failed to delete ticket', 'error' => $exception->getMessage()], 500);
+            return response()->json(['success' => true, 'data' => $lanes, 'message' => 'Ticket deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to delete ticket'], 500);
         }
     }
     public function moveTicket(Request $request)
@@ -66,9 +88,13 @@ class TicketController extends Controller
         $toLaneId = $request->input('toLaneId');
         $oldPosition = $request->input('oldIndex');
         $newPosition = $request->input('newIndex');
-
         DB::transaction(function () use ($ticketId, $toLaneId, $newPosition, $oldPosition) {
-            $ticket = Ticket::findOrFail($ticketId);
+            $ticket = Ticket::find($ticketId);
+
+            if (empty($ticket)) {
+                return response()->json(['success' => false, 'message' => 'Ticket not found'], 404);
+            }
+
             $currentLaneId = $ticket->lane_id;
 
             if ($currentLaneId == $toLaneId && $newPosition == $oldPosition) {
@@ -89,7 +115,6 @@ class TicketController extends Controller
                         ->where('position', '>=', $newPosition)
                         ->where('position', '<', $oldPosition)
                         ->increment('position');
-                    echo "move up";
                 } else {
                     Ticket::where('lane_id', $currentLaneId)
                         ->where('position', '>', $oldPosition)
@@ -98,7 +123,6 @@ class TicketController extends Controller
                 }
             }
 
-            echo  'newPosition: ' . $newPosition . ' oldPosition: ' . $oldPosition . ' currentLaneId: ' . $currentLaneId . ' toLaneId: ' . $toLaneId . 'ticketId: ' . $ticketId;
             $ticket->lane_id = $toLaneId;
             $ticket->position = $newPosition;
             $ticket->save();
@@ -114,17 +138,28 @@ class TicketController extends Controller
     {
         $ticket = Ticket::where('id', $ticketId)
             ->where('lane_id', $laneId)
-            ->firstOrFail();
-        $ticket->title = $request->input('title');
-        $ticket->author = $request->input('author');
-        $ticket->priority = $request->input('priority');
-        $ticket->description = $request->input('description');
-        $ticket->link_issue = $request->input('link_issue');
-        $ticket->save();
+            ->first();
+
+        if (!$ticket) {
+            return response()->json(['success' => false, 'message' => 'Ticket not found'], 404);
+        }
+
+        $ticket->title = $request->input('title', $ticket->title);
+        $ticket->author = $request->input('author', $ticket->author);
+        $ticket->priority = $request->input('priority', $ticket->priority);
+        $ticket->description = $request->input('description', $ticket->description);
+        $ticket->link_issue = $request->input('link_issue', $ticket->link_issue);
+
+        try {
+            $ticket->save();
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to update ticket'], 500);
+        }
+
         $lanes = Lane::with(['tickets' => function ($query) {
             $query->orderBy('position', 'asc');
         }])->get();
 
-        return response()->json(['success' => true, 'data' => $lanes]);
+        return response()->json(['success' => true, 'data' => $lanes, 'message' => 'Ticket updated successfully'], 200);
     }
 }
