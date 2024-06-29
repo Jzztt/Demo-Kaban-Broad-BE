@@ -11,9 +11,11 @@ class LaneController extends Controller
     public function index()
     {
 
-        return  Lane::with(['tickets' => function ($query) {
-            $query->orderBy('position', 'asc'); // Sắp xếp tickets theo trường position tăng dần
+        $lanes = Lane::with(['tickets' => function ($query) {
+            $query->orderBy('position', 'asc');
         }])->get();
+
+        return response()->json(['success' => True, 'data' => $lanes, 'message' => 'Lanes retrieved successfully'], 200);
     }
 
     public function show($id)
