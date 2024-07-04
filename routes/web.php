@@ -1,8 +1,7 @@
 <?php
 
 
-use App\Http\Controllers\LaneController;
-use App\Http\Controllers\TicketController;
+
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,11 +18,3 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::get('/lanes', [LaneController::class, 'index']);
-Route::put('/lanes/{laneId}/tickets/{ticketId}', [TicketController::class, 'update']);
-Route::delete('/lanes/{laneId}/tickets/{ticketId}', [TicketController::class, 'delete']);
-
-
-Route::post('/tickets', [TicketController::class, 'store']);
-Route::put('/tickets/move', [TicketController::class, 'moveTicket']);

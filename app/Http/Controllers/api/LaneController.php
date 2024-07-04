@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Lane;
-use App\Models\Ticket;
 use Illuminate\Http\Request;
 
 class LaneController extends Controller
