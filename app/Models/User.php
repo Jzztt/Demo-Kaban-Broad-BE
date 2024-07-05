@@ -44,4 +44,13 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    public function broads()
+    {
+        return $this->hasMany(Board::class);
+    }
+
+    public function boardMembers()
+    {
+        return $this->hasMany(BoardMember::class);
+    }
 }
