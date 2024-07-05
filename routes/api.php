@@ -33,9 +33,9 @@ Route::group([
     Route::get('profile', [AuthController::class, 'getProfile']);
     Route::get('logout', [AuthController::class, 'logout']);
     Route::apiResource('boards', BoardController::class);
+    Route::get('/lanes', [LaneController::class, 'index']);
 });
 
-Route::get('/lanes', [LaneController::class, 'index']);
 Route::put('/lanes/{laneId}/tickets/{ticketId}', [TicketController::class, 'update']);
 Route::delete('/lanes/{laneId}/tickets/{ticketId}', [TicketController::class, 'delete']);
 
