@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\LaneController;
 use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\AuthController;
-
+use App\Http\Controllers\api\BoardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +32,7 @@ Route::group([
 ], function () {
     Route::get('profile', [AuthController::class, 'getProfile']);
     Route::get('logout', [AuthController::class, 'logout']);
+    Route::apiResource('boards', BoardController::class);
 });
 
 Route::get('/lanes', [LaneController::class, 'index']);
