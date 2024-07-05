@@ -32,13 +32,20 @@ Route::group([
 ], function () {
     Route::get('profile', [AuthController::class, 'getProfile']);
     Route::get('logout', [AuthController::class, 'logout']);
-    Route::apiResource('boards', BoardController::class);
-    Route::get('/lanes', [LaneController::class, 'index']);
 });
 
-Route::put('/lanes/{laneId}/tickets/{ticketId}', [TicketController::class, 'update']);
-Route::delete('/lanes/{laneId}/tickets/{ticketId}', [TicketController::class, 'delete']);
+
+//Restricted Routes
+Route::middleware(['auth:api', 'board.invitation'])->group(function () {
+    Route::get('/boards/{board_id}', [BoardController::class, 'show']);
+    Route::put('/boards/{board_id}', [BoardController::class, 'update']);
+    Route::delete('/boards/{board_id}', [BoardController::class, 'delete']);
+
+    Route::get('/lanes', [LaneController::class, 'index']);
+    Route::put('/lanes/{laneId}/tickets/{ticketId}', [TicketController::class, 'update']);
+    Route::delete('/lanes/{laneId}/tickets/{ticketId}', [TicketController::class, 'delete']);
 
 
-Route::post('/tickets', [TicketController::class, 'store']);
-Route::put('/tickets/move', [TicketController::class, 'moveTicket']);
+    Route::post('/tickets', [TicketController::class, 'store']);
+    Route::put('/tickets/move', [TicketController::class, 'moveTicket']);
+});
