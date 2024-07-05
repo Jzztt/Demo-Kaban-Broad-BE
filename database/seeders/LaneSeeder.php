@@ -18,16 +18,19 @@ class LaneSeeder extends Seeder
         DB::table('lanes')->insert([
             [
                 'name' => 'To Do',
+                'board_id' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'name' => 'In Progress',
+                'board_id' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'name' => 'Done',
+                'board_id' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
