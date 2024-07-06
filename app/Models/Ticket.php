@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Events;
 
 class Ticket extends Model
 {
@@ -15,4 +17,7 @@ class Ticket extends Model
     {
         return $this->belongsTo(Lane::class);
     }
+    protected $dispatchesEvents = [
+        'moved' => Events\TicketMoved::class,
+    ];
 }

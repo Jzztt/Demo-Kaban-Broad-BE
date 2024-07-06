@@ -47,14 +47,20 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'message' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'message' => 'Validation failed'], 422);
         }
 
         $user = User::where('email', $request->email)->first();
 
         if ($user && Hash::check($request->password, $user->password)) {
             $accessToken = $user->createToken('LaravelAuthApp')->accessToken;
-            return response()->json(['success' => true, 'access_token' => $accessToken], 200);
+            return response()->json([
+                'data' => [
+                    'access_token' => $accessToken,
+                ],
+                'message' => 'Login successful',
+                'success' => true,
+            ], 200);
         }
 
         return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);

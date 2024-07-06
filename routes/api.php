@@ -23,15 +23,15 @@ use App\Http\Controllers\api\BoardController;
 // });
 
 //Open Routes
-Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
 //Protected Routes
 Route::group([
     'middleware' => 'auth:api',
 ], function () {
-    Route::get('profile', [AuthController::class, 'getProfile']);
-    Route::get('logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [AuthController::class, 'getProfile']);
+    Route::get('/logout', [AuthController::class, 'logout']);
 });
 
 

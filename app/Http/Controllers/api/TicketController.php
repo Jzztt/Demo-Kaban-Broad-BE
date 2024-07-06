@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\api;
 
+use App\Events\TicketMoved;
 use App\Http\Controllers\Controller;
+use App\Models\Board;
 use App\Models\Lane;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
@@ -126,6 +128,7 @@ class TicketController extends Controller
 
             $ticket->lane_id = $toLaneId;
             $ticket->position = $newPosition;
+            broadcast(new TicketMoved($ticket))->toOthers();
             $ticket->save();
         });
 
